@@ -240,7 +240,11 @@ def main(args=None):
     args = parser.parse_args(args)
     if args.debug:
         http.client.HTTPConnection.debuglevel = 1
-    headers = {'Accept': 'application/json'}
+    headers = {
+            'Accept': 'application/json',
+            'User-Agent': f'Break19 {__version__} ' \
+                    'https://github.com/jay0lee/break19'
+            }
     creds = Credentials.from_service_account_file(args.credentials_file)
     scopes = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
     creds = creds.with_scopes(scopes)
