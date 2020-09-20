@@ -8,7 +8,8 @@ break19 supports all the [CBCM browser](https://support.google.com/chrome/a/answ
 
 ```
 $ break19 --help
-usage: Break19 [-h] --credentials-file CREDENTIALS_FILE --customer CUSTOMER --admin ADMIN [--debug] {list-browsers,get-browser,update-browser,delete-browser,move-browsers,list-tokens,create-token,revoke-token} ...
+usage: Break19 [-h] --credentials-file CREDENTIALS_FILE --customer CUSTOMER --admin ADMIN [--debug]
+       {list-browsers,get-browser,update-browser,delete-browser,move-browsers,list-tokens,create-token,revoke-token} ...
 
 positional arguments:
   {list-browsers,get-browser,update-browser,delete-browser,move-browsers,list-tokens,create-token,revoke-token}
