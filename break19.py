@@ -19,7 +19,7 @@ def get_parser():
     parser.add_argument('--credentials-file', dest='credentials_file',
                         required=True,
                         help='location of your service account credentials')
-    parser.add_argument('--customer', dest='customer', required=True,
+    parser.add_argument('--customer', dest='customer', default='my_customer',
                         help='Customer ID from admin.google.com > ' \
                                         'Account > Account settings > Profile.')
     parser.add_argument('--admin', dest='admin', required=True,
@@ -44,13 +44,13 @@ def get_parser():
 
     getbrowser_p = subparsers.add_parser('get-browser', help='Get browser')
     getbrowser_p.add_argument('--id', required=True,
-            help='deviceId of the browser to get')
+                              help='deviceId of the browser to get')
     getbrowser_p.add_argument('--fields', help='Limit fields retrieved and output.')
     getbrowser_p.set_defaults(func=getbrowser)
 
     updatebrowser_p = subparsers.add_parser('update-browser', help='Update browser')
     updatebrowser_p.add_argument('--id', required=True,
-            help='deviceId of the browser to update')
+                                 help='deviceId of the browser to update')
     updatebrowser_p.add_argument('--user', help='user of the browser')
     updatebrowser_p.add_argument('--location', help='location of the browser')
     updatebrowser_p.add_argument('--notes', help='notes of the browser')
@@ -60,14 +60,14 @@ def get_parser():
 
     deletebrowser_p = subparsers.add_parser('delete-browser', help='Delete browser')
     deletebrowser_p.add_argument('--id', required=True,
-            help='deviceId of the browser to delete')
+                                 help='deviceId of the browser to delete')
     deletebrowser_p.set_defaults(func=deletebrowser)
 
     movebrowsers_p = subparsers.add_parser('move-browsers', help='Update browsers')
     movebrowsers_p.add_argument('--ids', required=True,
-            help='comma-seperated deviceIds of the browsers to move')
+                                help='comma-seperated deviceIds of the browsers to move')
     movebrowsers_p.add_argument('--orgunit', required=True,
-            help='Org Unit location to move browsers')
+                                help='Org Unit location to move browsers')
     movebrowsers_p.set_defaults(func=movebrowsers)
 
     listtokens_p = subparsers.add_parser('list-tokens', help='List enrollment tokens')
@@ -95,7 +95,7 @@ def get_parser():
 
     revoketoken_p = subparsers.add_parser('revoke-token', help='Revoke enrollment token')
     revoketoken_p.add_argument('--id', required=True,
-            help='permanent ID of the token to revoke')
+                               help='permanent ID of the token to revoke')
     revoketoken_p.set_defaults(func=revoketoken)
 
     return parser
