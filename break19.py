@@ -231,24 +231,29 @@ def build_http(customer, headers):
     http_client.headers.update(headers)
     return http_client
 
+def build_credentials(credentials_file, admin):
+    """Build authenticated credentials headers."""
+    headers = {
+        'Accept': 'application/json',
+        'User-Agent': f'Break19 {__version__} ' \
+                'https://github.com/jay0lee/break19'
+        }
+    creds = Credentials.from_service_account_file(credentials_file)
+    scopes = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
+    creds = creds.with_scopes(scopes)
+    creds = creds.with_subject(admin)
+    request = google.auth.transport.requests.Request()
+    creds.refresh(request)
+    creds.apply(headers)
+    return headers
+
 
 def main(args=None):
     """Main function."""
     args = get_args(args)
     if args.debug:
         http.client.HTTPConnection.debuglevel = 1
-    headers = {
-        'Accept': 'application/json',
-        'User-Agent': f'Break19 {__version__} ' \
-                'https://github.com/jay0lee/break19'
-        }
-    creds = Credentials.from_service_account_file(args.credentials_file)
-    scopes = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
-    creds = creds.with_scopes(scopes)
-    creds = creds.with_subject(args.admin)
-    request = google.auth.transport.requests.Request()
-    creds.refresh(request)
-    creds.apply(headers)
+    headers = build_credentials(args.credentials_file, args.admin)
     httpc = build_http(args.customer, headers)
     args.func(args, httpc)
 
