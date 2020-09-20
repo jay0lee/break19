@@ -4,7 +4,7 @@
 
 import argparse
 import http
-import pprint
+import json
 import sys
 
 import google.auth.transport.requests
@@ -18,7 +18,7 @@ __version__ = '0.1'
 __author__ = 'Jay Lee'
 
 
-def get_parser():
+def get_args(args):
     """Parse command line arguments."""
 
     parser = argparse.ArgumentParser('Break19')
@@ -104,10 +104,10 @@ def get_parser():
                                help='permanent ID of the token to revoke')
     revoketoken_p.set_defaults(func=revoketoken)
 
-    return parser
+    return parser.parse_args(args)
 
 
-def listbrowsers(args):
+def listbrowsers(args, httpc):
     """List browsers."""
     params = {}
     if args.orderby:
@@ -132,7 +132,7 @@ def listbrowsers(args):
             break
     print_json(browsers)
 
-def getbrowser(args):
+def getbrowser(args, httpc):
     """List browsers."""
     params = {}
     if args.fields:
@@ -141,7 +141,7 @@ def getbrowser(args):
     print_json(result.json())
 
 
-def updatebrowser(args):
+def updatebrowser(args, httpc):
     """Update browser."""
     body = {'deviceId': args.id}
     params = {}
@@ -158,12 +158,12 @@ def updatebrowser(args):
     result = httpc.put(f'devices/chromebrowsers/{args.id}', params=params, json=body)
     print_json(result.json())
 
-def deletebrowser(args):
+def deletebrowser(args, httpc):
     """Delete browser."""
     result = httpc.delete(f'devices/chromebrowsers/{args.id}')
     print_json(result.json())
 
-def movebrowsers(args):
+def movebrowsers(args, httpc):
     """Move browsers."""
     body = {}
     body['resource_ids'] = args.ids.split(',')
@@ -172,7 +172,7 @@ def movebrowsers(args):
     print(f'{result.status_code} {result.reason}')
 
 
-def listtokens(args):
+def listtokens(args, httpc):
     """List tokens."""
     params = {}
     if args.orgunit:
@@ -192,7 +192,7 @@ def listtokens(args):
     print_json(tokens)
 
 
-def createtoken(args):
+def createtoken(args, httpc):
     """Create token."""
     body = {'token_type': 'chromeBrowser'}
     params = {}
@@ -207,18 +207,17 @@ def createtoken(args):
     result = httpc.post('chrome/enrollmentTokens', params=params, json=body)
     print_json(result.json())
 
-def revoketoken(args):
+def revoketoken(args, httpc):
     """Revoke token."""
     result = httpc.post(f'chrome/enrollmentTokens/{args.id}:revoke')
     print(f'{result.status_code} {result.reason}')
 
 
-def print_json(json):
+def print_json(myjson):
     """Pretty print JSON output."""
-    pprinter = pprint.PrettyPrinter(indent=2)
-    pprinter.pprint(json)
+    print(json.dumps(myjson, indent=2, sort_keys=True))
 
-def build_http(customer):
+def build_http(customer, headers):
     """Build an HTTP object with backoff/retry."""
     retry_strategy = Retry(
         total=7,
@@ -235,16 +234,14 @@ def build_http(customer):
 
 def main(args=None):
     """Main function."""
-    global headers, httpc
-    parser = get_parser()
-    args = parser.parse_args(args)
+    args = get_args(args)
     if args.debug:
         http.client.HTTPConnection.debuglevel = 1
     headers = {
-            'Accept': 'application/json',
-            'User-Agent': f'Break19 {__version__} ' \
-                    'https://github.com/jay0lee/break19'
-            }
+        'Accept': 'application/json',
+        'User-Agent': f'Break19 {__version__} ' \
+                'https://github.com/jay0lee/break19'
+        }
     creds = Credentials.from_service_account_file(args.credentials_file)
     scopes = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
     creds = creds.with_scopes(scopes)
@@ -252,8 +249,8 @@ def main(args=None):
     request = google.auth.transport.requests.Request()
     creds.refresh(request)
     creds.apply(headers)
-    httpc = build_http(args.customer)
-    args.func(args)
+    httpc = build_http(args.customer, headers)
+    args.func(args, httpc)
 
 
 if __name__ == '__main__':
