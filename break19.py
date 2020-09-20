@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Chrome Browser Cloud Management (CBCM) command line tool."""
+
 import argparse
 import http
 import pprint
@@ -7,7 +11,7 @@ import google.auth.transport.requests
 from google.oauth2.service_account import Credentials
 
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from requests.packages.urllib3.util.retry import Retry # pylint: disable=E0401
 from requests_toolbelt import sessions
 
 __version__ = '0.1'
@@ -15,6 +19,8 @@ __author__ = 'Jay Lee'
 
 
 def get_parser():
+    """Parse command line arguments."""
+
     parser = argparse.ArgumentParser('Break19')
     parser.add_argument('--credentials-file', dest='credentials_file',
                         required=True,
@@ -102,6 +108,7 @@ def get_parser():
 
 
 def listbrowsers(args):
+    """List browsers."""
     params = {}
     if args.orderby:
         params['orderBy'] = args.orderby
@@ -117,9 +124,8 @@ def listbrowsers(args):
         params['fields'] = args.fields
     browsers = []
     while True:
-        s = r.get('devices/chromebrowsers', params=params)
-        result = s.json()
-        browsers += result.get('browsers', [])
+        result = httpc.get('devices/chromebrowsers', params=params)
+        browsers += result.json().get('browsers', [])
         if 'nextPageToken' in result:
             params['pageToken'] = result['nextPageToken']
         else:
@@ -127,14 +133,16 @@ def listbrowsers(args):
     print_json(browsers)
 
 def getbrowser(args):
+    """List browsers."""
     params = {}
     if args.fields:
         params['fields'] = args.fields
-    s = r.get(f'devices/chromebrowsers/{args.id}', params=params)
-    print_json(s.json())
+    result = httpc.get(f'devices/chromebrowsers/{args.id}', params=params)
+    print_json(result.json())
 
 
 def updatebrowser(args):
+    """Update browser."""
     body = {'deviceId': args.id}
     params = {}
     if args.user:
@@ -147,22 +155,25 @@ def updatebrowser(args):
         body['annotatedAssetId'] = args.assetid
     if args.fields:
         params['fields'] = args.fields
-    s = r.put(f'devices/chromebrowsers/{args.id}', params=params, json=body)
-    print_json(s.json())
+    result = httpc.put(f'devices/chromebrowsers/{args.id}', params=params, json=body)
+    print_json(result.json())
 
 def deletebrowser(args):
-    s = r.delete(f'devices/chromebrowsers/{args.id}')
-    print_json(s.json())
+    """Delete browser."""
+    result = httpc.delete(f'devices/chromebrowsers/{args.id}')
+    print_json(result.json())
 
 def movebrowsers(args):
+    """Move browsers."""
     body = {}
     body['resource_ids'] = args.ids.split(',')
     body['org_unit_path'] = args.orgunit
-    s = r.post('devices/chromebrowsers/moveChromeBrowsersToOu', json=body)
-    print(f'{s.status_code} {s.reason}')
+    result = httpc.post('devices/chromebrowsers/moveChromeBrowsersToOu', json=body)
+    print(f'{result.status_code} {result.reason}')
 
 
 def listtokens(args):
+    """List tokens."""
     params = {}
     if args.orgunit:
         params['orgUnitPath'] = args.orgunit
@@ -172,8 +183,7 @@ def listtokens(args):
         params['fields'] = args.fields
     tokens = []
     while True:
-        s = r.get('chrome/enrollmentTokens', params=params)
-        result = s.json()
+        result = httpc.get('chrome/enrollmentTokens', params=params).json()
         tokens += result.get('chromeEnrollmentTokens', [])
         if 'nextPageToken' in result:
             params['pageToken'] = result['nextPageToken']
@@ -183,6 +193,7 @@ def listtokens(args):
 
 
 def createtoken(args):
+    """Create token."""
     body = {'token_type': 'chromeBrowser'}
     params = {}
     if args.expire:
@@ -193,19 +204,22 @@ def createtoken(args):
         body['ttl'] = args.ttl
     if args.fields:
         params['fields'] = args.fields
-    s = r.post('chrome/enrollmentTokens', params=params, json=body)
-    print_json(s.json())
+    result = httpc.post('chrome/enrollmentTokens', params=params, json=body)
+    print_json(result.json())
 
 def revoketoken(args):
-    s = r.post(f'chrome/enrollmentTokens/{args.id}:revoke')
-    print(f'{s.status_code} {s.reason}')
+    """Revoke token."""
+    result = httpc.post(f'chrome/enrollmentTokens/{args.id}:revoke')
+    print(f'{result.status_code} {result.reason}')
 
 
 def print_json(json):
-    pp = pprint.PrettyPrinter(indent=2)
-    pp.pprint(json)
+    """Pretty print JSON output."""
+    pprinter = pprint.PrettyPrinter(indent=2)
+    pprinter.pprint(json)
 
 def build_http(customer):
+    """Build an HTTP object with backoff/retry."""
     retry_strategy = Retry(
         total=7,
         status_forcelist=[429, 500, 502, 503, 504],
@@ -213,14 +227,15 @@ def build_http(customer):
         )
     adapter = HTTPAdapter(max_retries=retry_strategy)
     base_url = f'https://www.googleapis.com/admin/directory/v1.1beta1/customer/{customer}/'
-    r = sessions.BaseUrlSession(base_url=base_url)
-    r.mount("https://", adapter)
-    r.headers.update(headers)
-    return r
+    http_client = sessions.BaseUrlSession(base_url=base_url)
+    http_client.mount("https://", adapter)
+    http_client.headers.update(headers)
+    return http_client
 
 
 def main(args=None):
-    global headers, r
+    """Main function."""
+    global headers, httpc
     parser = get_parser()
     args = parser.parse_args(args)
     if args.debug:
@@ -233,7 +248,7 @@ def main(args=None):
     request = google.auth.transport.requests.Request()
     creds.refresh(request)
     creds.apply(headers)
-    r = build_http(args.customer)
+    httpc = build_http(args.customer)
     args.func(args)
 
 
