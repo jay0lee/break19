@@ -1,6 +1,6 @@
 # break19
 
-Tool to interact with the Google Chrome Browser Management Console (CBCM) API
+Tool to interact with the Google Chrome Browser Cloud Management  (CBCM) API
 
 *When I was a kid my father had a [CB radio](https://en.wikipedia.org/wiki/Citizens_band_radio) (get it? CB radio CB - "Chrome browser"? OK it's a stretch I admit). "Break one-nine for a radio check" was CB lingo for "can you hear me?" It was all my brother and I really knew to say but boy did we learn some new words from the truckers.*
 
@@ -31,7 +31,7 @@ optional arguments:
   --debug               Show HTTP session details
   
 
-$ break19 --credentials-file ~/GAM/src/oauth2service.json --customer C01wfv983 --admin me@u.jaylee.us list-browsers
+$ break19 --credentials-file oauth2service.json --admin me@u.jaylee.us list-browsers
 [ { 'browserVersions': ['85.0.4183.102'],
     'deviceId': '5505a650-7c37-4364-8c2d-159c444962e0',
     'extensionCount': '22',
