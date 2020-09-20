@@ -39,11 +39,13 @@ def get_parser():
     sort_choices = ['ASCENDING', 'DESCENDING']
     listbrowsers_p.add_argument('--sortorder', default='ASCENDING', choices=sort_choices,
                                 help='Sort order')
+    listbrowsers_p.add_argument('--fields', help='Limit fields retrieved and output.')
     listbrowsers_p.set_defaults(func=listbrowsers)
 
     getbrowser_p = subparsers.add_parser('get-browser', help='Get browser')
     getbrowser_p.add_argument('--id', required=True,
             help='deviceId of the browser to get')
+    getbrowser_p.add_argument('--fields', help='Limit fields retrieved and output.')
     getbrowser_p.set_defaults(func=getbrowser)
 
     updatebrowser_p = subparsers.add_parser('update-browser', help='Update browser')
@@ -53,6 +55,7 @@ def get_parser():
     updatebrowser_p.add_argument('--location', help='location of the browser')
     updatebrowser_p.add_argument('--notes', help='notes of the browser')
     updatebrowser_p.add_argument('--assetid', help='asset tag id of the browser')
+    updatebrowser_p.add_argument('--fields', help='Limit fields retrieved and output.')
     updatebrowser_p.set_defaults(func=updatebrowser)
 
     deletebrowser_p = subparsers.add_parser('delete-browser', help='Delete browser')
@@ -70,6 +73,7 @@ def get_parser():
     listtokens_p = subparsers.add_parser('list-tokens', help='List enrollment tokens')
     listtokens_p.add_argument('--orgunit', help='OrgUnit to scope results')
     listtokens_p.add_argument('--query', help='Query to scope results')
+    listtokens_p.add_argument('--fields', help='Limit fields retrieved and output.')
     listtokens_p.set_defaults(func=listtokens)
 
     createtoken_p = subparsers.add_parser('create-token', help='Create enrollment token')
@@ -87,6 +91,7 @@ def get_parser():
             'token, encoded in seconds with an “s” suffix. Eg, for a token ' \
             'to live for 1 hour, this field should be set to “3600s”.')
     createtoken_p.set_defaults(func=createtoken)
+    createtoken_p.add_argument('--fields', help='Limit fields retrieved and output.')
 
     revoketoken_p = subparsers.add_parser('revoke-token', help='Revoke enrollment token')
     revoketoken_p.add_argument('--id', required=True,
@@ -108,6 +113,8 @@ def listbrowsers(args):
         params['query'] = args.query
     if args.sortorder:
         params['sortOrder'] = args.sortorder
+    if args.fields:
+        params['fields'] = args.fields
     browsers = []
     while True:
         s = r.get('devices/chromebrowsers', params=params)
@@ -120,12 +127,16 @@ def listbrowsers(args):
     print_json(browsers)
 
 def getbrowser(args):
-    s = r.get(f'devices/chromebrowsers/{args.id}')
+    params = {}
+    if args.fields:
+        params['fields'] = args.fields
+    s = r.get(f'devices/chromebrowsers/{args.id}', params=params)
     print_json(s.json())
 
 
 def updatebrowser(args):
     body = {'deviceId': args.id}
+    params = {}
     if args.user:
         body['annotatedUser'] = args.user
     if args.location:
@@ -134,7 +145,9 @@ def updatebrowser(args):
         body['annotatedNotes'] = args.notes
     if args.assetid:
         body['annotatedAssetId'] = args.assetid
-    s = r.put(f'devices/chromebrowsers/{args.id}', json=body)
+    if args.fields:
+        params['fields'] = args.fields
+    s = r.put(f'devices/chromebrowsers/{args.id}', params=params, json=body)
     print_json(s.json())
 
 def deletebrowser(args):
@@ -155,6 +168,8 @@ def listtokens(args):
         params['orgUnitPath'] = args.orgunit
     if args.query:
         params['query'] = args.query
+    if args.fields:
+        params['fields'] = args.fields
     tokens = []
     while True:
         s = r.get('chrome/enrollmentTokens', params=params)
@@ -169,13 +184,16 @@ def listtokens(args):
 
 def createtoken(args):
     body = {'token_type': 'chromeBrowser'}
+    params = {}
     if args.expire:
         body['expire_time'] = args.expire
     if args.orgunit:
         body['org_unit_path'] = args.orgunit
     if args.ttl:
         body['ttl'] = args.ttl
-    s = r.post('chrome/enrollmentTokens', json=body)
+    if args.fields:
+        params['fields'] = args.fields
+    s = r.post('chrome/enrollmentTokens', params=params, json=body)
     print_json(s.json())
 
 def revoketoken(args):
