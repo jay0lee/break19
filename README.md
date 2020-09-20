@@ -2,7 +2,7 @@
 
 Tool to interact with the Google Chrome Browser Management Console (CBCM) API
 
-When I was a kid my father had a [CB radio](https://en.wikipedia.org/wiki/Citizens_band_radio) (get it? CB radio CB - "Chrome browser"? OK it's a stretch I admit). "Break one-nine for a radio check" was CB lingo for "can you hear me?" It was all my brother and I really knew to say but boy did we learn some new words from the truckers.
+*When I was a kid my father had a [CB radio](https://en.wikipedia.org/wiki/Citizens_band_radio) (get it? CB radio CB - "Chrome browser"? OK it's a stretch I admit). "Break one-nine for a radio check" was CB lingo for "can you hear me?" It was all my brother and I really knew to say but boy did we learn some new words from the truckers.*
 
 break19 supports all the [CBCM browser](https://support.google.com/chrome/a/answer/9681204?hl=en&ref_topic=9301744) and [token](https://support.google.com/chrome/a/answer/9949706?hl=en&ref_topic=9301744) API calls.
 
