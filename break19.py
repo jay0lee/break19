@@ -5,6 +5,7 @@
 import argparse
 import http
 import json
+import os.path
 import sys
 
 import google.auth.transport.requests
@@ -17,6 +18,7 @@ from requests_toolbelt import sessions
 __version__ = '0.1'
 __author__ = 'Jay Lee'
 
+SCOPES = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
 
 def get_args(args):
     """Parse command line arguments."""
@@ -233,17 +235,34 @@ def build_http(customer, headers):
 
 def build_credentials(credentials_file, admin):
     """Build authenticated credentials headers."""
+    if not os.path.isfile(credentials_file):
+        print(f'ERROR: {credentials_file} does not exist')
+        sys.exit(2)
+    with open(credentials_file, 'rb') as fpointer:
+        credentials_data = json.load(fpointer)
+    client_id = credentials_data.get('client_id')
+    if not client_id:
+        print(f'ERROR: {credentials_file} is not valid, no client_id present')
+        sys.exit(3)
     headers = {
         'Accept': 'application/json',
         'User-Agent': f'Break19 {__version__} ' \
                 'https://github.com/jay0lee/break19'
         }
-    creds = Credentials.from_service_account_file(credentials_file)
-    scopes = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
-    creds = creds.with_scopes(scopes)
+    creds = Credentials.from_service_account_info(credentials_data)
+    creds = creds.with_scopes(SCOPES)
     creds = creds.with_subject(admin)
     request = google.auth.transport.requests.Request()
-    creds.refresh(request)
+    try:
+        creds.refresh(request)
+    except google.auth.exceptions.RefreshError as err:
+        print(err)
+        admin_url = f'https://admin.google.com/ac/owl/domainwidedelegation' \
+                    f'?clientIdToAdd={client_id}' \
+                    f'&clientScopeToAdd={",".join(SCOPES)}' \
+                    f'&overwriteClientId=true'
+        print(f'Please go to:\n\n{admin_url}\n\nto authorize access.')
+        sys.exit(1)
     creds.apply(headers)
     return headers
 
