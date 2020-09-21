@@ -2,77 +2,62 @@ if: tag IS blank
 os: linux
 language: python
 dist: xenial
-
 env:
   global:
-    - BUILD_PYTHON_VERSION=3.8.5
-    - MIN_PYTHON_VERSION=3.8.5
-    - BUILD_OPENSSL_VERSION=1.1.1g
-    - MIN_OPENSSL_VERSION=1.1.1g
-    - PATCHELF_VERSION=0.11
-    - PYINSTALLER_COMMIT=1e571ae1a302709583667f41fbc2508b9a79a05f
+  - BUILD_PYTHON_VERSION=3.8.5
+  - MIN_PYTHON_VERSION=3.8.5
+  - BUILD_OPENSSL_VERSION=1.1.1g
+  - MIN_OPENSSL_VERSION=1.1.1g
+  - PATCHELF_VERSION=0.11
+  - PYINSTALLER_COMMIT=1e571ae1a302709583667f41fbc2508b9a79a05f
 cache:
   directories:
-    - $HOME/.cache/pip
-    - $HOME/python
-    - $HOME/ssl
-
+  - "$HOME/.cache/pip"
+  - "$HOME/python"
+  - "$HOME/ssl"
 jobs:
   include:
-    - os: linux
-      name: "Linux 64-bit Xenial"
-      dist: xenial
-      language: shell
-    - os: linux
-      dist: xenial
-      arch: arm64
-      name: "Linux ARM64 Xenial"
-      language: shell
-      filter_secrets: false
-    - os: osx
-      name: "MacOS 10.13"
-      language: generic
-      osx_image: xcode10.1
-    - os: windows
-      name: "Windows 64-bit"
-      language: shell
-    - os: windows
-      name: "Windows 32-bit"
-      language: shell
-
+  - os: linux
+    name: Linux 64-bit Xenial
+    dist: xenial
+    language: shell
+  - os: linux
+    dist: xenial
+    arch: arm64
+    name: Linux ARM64 Xenial
+    language: shell
+    filter_secrets: false
+  - os: osx
+    name: MacOS 10.13
+    language: generic
+    osx_image: xcode10.1
+  - os: windows
+    name: Windows 64-bit
+    language: shell
+  - os: windows
+    name: Windows 32-bit
+    language: shell
 before_install:
-- if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-    export MYOS="macos";
-  else
-    export MYOS="${TRAVIS_OS_NAME}";
+- if [ "${TRAVIS_OS_NAME}" == "osx" ]; then export MYOS="macos"; else export MYOS="${TRAVIS_OS_NAME}";
   fi
-- if [ "${TRAVIS_JOB_NAME}" == "Windows 32-bit" ]; then
-    export PLATFORM="x86";
-  elif [ "${TRAVIS_CPU_ARCH}" == "amd64" ]; then
-    export PLATFORM="x86_64";
-  else
-    export PLATFORM="${TRAVIS_CPU_ARCH}";
-  fi
+- if [ "${TRAVIS_JOB_NAME}" == "Windows 32-bit" ]; then export PLATFORM="x86"; elif
+  [ "${TRAVIS_CPU_ARCH}" == "amd64" ]; then export PLATFORM="x86_64"; else export
+  PLATFORM="${TRAVIS_CPU_ARCH}"; fi
 - source travis/${TRAVIS_OS_NAME}-before-install.sh
-
 install:
 - source travis/${TRAVIS_OS_NAME}-install.sh
-
-script:
-
+script: 
 before_deploy:
 - export TRAVIS_TAG="preview"
 - unset LD_LIBRARY_PATH
-
 deploy:
   provider: releases
-  token:
-    secure: bzambMcQwyv/o5c5GrKGCsZHgE5R85tg8sNFvPfpISz3+uosCjnBXas7wvCKzT75XUFi2ztfbYak6HdKf4sGnNHk0saEicB3slH+ghPyZbYzp76yvvduhFO2nWW3/F01tL+Yfqqt4/q8wFaWGjrC5km+6GLVyB4lWA/Uyu49qKnz02uSwyhBD/VFbO7DOQ65a1iWk9HngyMsu0Oi7HIbSjSLtxTHedNfOf3waW0NivTTxYXiYGX/MCu3GWhgIGj47a+H3A6FcQ/9QWvnKgnoixdgPBUz7kDb7ktsWwQsILPGStgH7iMuG49ZlXdEFmqwifBri2wvzmFEevBGZjHcupy1IGrNFRG+IUGKMotio+OkLHlLjuv7ZJtqCz/Vf5SNFgNyMSanx6jKEUJuYvndVg99IRXmYVwHFwPu5BAcJACpU6C0AfyGmmSqqwxCd46uXL62ynxNFpHuRfOqlDnmCTfZgjOciJSlDDpf+Xz9fF7+oCoeCi3mrcZVFjhd3tT6Oxw5HrsDtm0ZNld1cdLidaq8H6vOFgHMd0A9yNYZzTzXTvpmxzkXT4Zc7s+PYKN6z5fRZ+pJeckUjRXblvVEfs5HFSymavcOc5AkRwxpvOsTQMNmlnaJCBo5UNs0K/rVmRi5cFmaiwTcBCY0kTllOBJ4zWsfq8seiokWwNUNK2g=
-  file_glob: true
-  overwrite: true
+  api_key:
+    secure: Y1Vrme4AtcDlJaK6RBusWyaGtrMrcjZHSYZeQ/bzvMGktxSt2vuvlc2v9ky+QJGQDlruTcM+IcStOu3ItXh3jNVxOiYLcW2DIzjTxgQnZJW8kBrrYgctK1HZ0IWKAirTzHvHCOlV6Y4Vi0W8Kg3seKegHCvQsrBPfG6YcArpnoBQNlCYc36EsxmvE6iKmIAPDnPlqiFbYQQKwBtuVUANiz6E++C5UKf87/qUWSKnMl02AjTfVioGvcfOCSZ/zngVTguoQ2HVBmro1rZdVQTE/+C/OkxWfBp0k/+7miCJfHvTgq16/K9vt9f/H8LnH16E3sfCZKNZZ+3Sa+gPFlfssjv/LZvbqOrJxfrlxDVJOjhY02exvo17QuTyfuFw1H4tBdWuEUCoJIjEMFxaXTtMfF3PVhBNkydAiQJgUdWYCI8dz1muh+zpK62JIPX8gXW/4veRiy0pUbMoJeslc/42a44Fe9S/KG1cqG6H29xd66gHdBSpNeTq4Hs15Fzwrqy37PvWdFEBN2CZMZHbfx/xCVnRhNkmw4ZkJ+/8UCrQRiaU+nTe1W74xRyY6n+KHaQIKHSZcqRztrreIBl2CEIGdu3w6boLlrCeHnhnX4aDm5ubZObQQDl6iEvF0tW8XwX6Zdh87YuRvaO7t6jfD0cHSrKghHtp0Ail0v8/VqllpwE=
   file: break19-$MYVERSION-*
-  skip_cleanup: true
-  draft: true
   on:
     repo: jay0lee/break19
-    condition: $TRAVIS_JOB_NAME != *"Testing"
+  skip_cleanup: 'true'
+  draft: 'true'
+  file_glob: true
+  overwrite: true
