@@ -8,7 +8,7 @@ else
   export mypath=$(readlink -e $mypath)
   $python -OO -m PyInstaller --clean --noupx --strip -F --distpath $mypath break19.spec
   export me="${mypath}/break19"
-  export MyVERSION=`$me --version`
+  export MYVERSION=`$me --version`
   cp LICENSE $mypath
   MY_ARCHIVE=break19-$MYVERSION-$MYOS-$PLATFORM.tar.xz
   # tar will cd to dist and tar
