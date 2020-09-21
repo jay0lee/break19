@@ -1,4 +1,3 @@
-cd src
 echo "MacOS Version Info According to Python:"
 python -c "import platform; print(platform.mac_ver())"
 export mypath=dist/break19

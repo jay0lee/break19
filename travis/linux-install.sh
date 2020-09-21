@@ -1,4 +1,3 @@
-cd src
 if [[ "$TRAVIS_JOB_NAME" == *"Testing" ]]; then
   export me="$python -m break19"
   export mypath=$(readlink -e .)

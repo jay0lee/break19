@@ -34,6 +34,7 @@ def get_args(args):
                         help='Email address of admin user to act as.')
     parser.add_argument('--debug', action='store_true',
                         help='Show HTTP session details')
+    parser.add_argument('--version', action='version', version=__version__)
 
     subparsers = parser.add_subparsers()
 

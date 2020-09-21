@@ -1,4 +1,3 @@
-cd src
 echo "compiling with pyinstaller..."
 export mypath="dist/break19"
 rm -rf $mypath
