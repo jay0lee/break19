@@ -15,7 +15,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry # pylint: disable=E0401
 from requests_toolbelt import sessions
 
-__version__ = '0.1'
+__version__ = '0.2'
 __author__ = 'Jay Lee'
 
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
@@ -38,74 +38,72 @@ def get_args(args):
 
     subparsers = parser.add_subparsers()
 
-    listbrowsers_p = subparsers.add_parser('list-browsers', help='List browsers')
-    listbrowsers_p.add_argument('--orgunit', help='OrgUnit to scope results')
-    listbrowsers_p.add_argument('--orderby', help='Sort results by property')
-    projection_choices = ['BASIC', 'FULL']
-    listbrowsers_p.add_argument('--projection', default='BASIC', choices=projection_choices,
-                                help='retrieve basic or full browser details')
-    listbrowsers_p.add_argument('--query', help='Query to scope results')
-    sort_choices = ['ASCENDING', 'DESCENDING']
-    listbrowsers_p.add_argument('--sortorder', default='ASCENDING', choices=sort_choices,
-                                help='Sort order')
-    listbrowsers_p.add_argument('--fields', help='Limit fields retrieved and output.')
-    listbrowsers_p.set_defaults(func=listbrowsers)
-
-    getbrowser_p = subparsers.add_parser('get-browser', help='Get browser')
-    getbrowser_p.add_argument('--id', required=True,
-                              help='deviceId of the browser to get')
-    getbrowser_p.add_argument('--fields', help='Limit fields retrieved and output.')
-    getbrowser_p.set_defaults(func=getbrowser)
-
-    updatebrowser_p = subparsers.add_parser('update-browser', help='Update browser')
-    updatebrowser_p.add_argument('--id', required=True,
-                                 help='deviceId of the browser to update')
-    updatebrowser_p.add_argument('--user', help='user of the browser')
-    updatebrowser_p.add_argument('--location', help='location of the browser')
-    updatebrowser_p.add_argument('--notes', help='notes of the browser')
-    updatebrowser_p.add_argument('--assetid', help='asset tag id of the browser')
-    updatebrowser_p.add_argument('--fields', help='Limit fields retrieved and output.')
-    updatebrowser_p.set_defaults(func=updatebrowser)
-
-    deletebrowser_p = subparsers.add_parser('delete-browser', help='Delete browser')
-    deletebrowser_p.add_argument('--id', required=True,
-                                 help='deviceId of the browser to delete')
-    deletebrowser_p.set_defaults(func=deletebrowser)
-
-    movebrowsers_p = subparsers.add_parser('move-browsers', help='Update browsers')
-    movebrowsers_p.add_argument('--ids', required=True,
-                                help='comma-seperated deviceIds of the browsers to move')
-    movebrowsers_p.add_argument('--orgunit', required=True,
-                                help='Org Unit location to move browsers')
-    movebrowsers_p.set_defaults(func=movebrowsers)
-
-    listtokens_p = subparsers.add_parser('list-tokens', help='List enrollment tokens')
-    listtokens_p.add_argument('--orgunit', help='OrgUnit to scope results')
-    listtokens_p.add_argument('--query', help='Query to scope results')
-    listtokens_p.add_argument('--fields', help='Limit fields retrieved and output.')
-    listtokens_p.set_defaults(func=listtokens)
-
-    createtoken_p = subparsers.add_parser('create-token', help='Create enrollment token')
-    createtoken_p.add_argument('--expire',
-                               help='Expire time of the created enrollment ' \
-                                       'token, in "yyyy-MM-ddThh:mm:ssZ" ' \
-                                       'format.')
-    createtoken_p.add_argument('--orgunit',
-                               help='The organization unit to create an ' \
-                                       'enrollment token for. If this' \
+    arguments = {
+        'list-browsers': [
+            (['--orgunit'], {'dest': 'orgunit', 'help': 'OrgUnit to scope results'}),
+            (['--orderby'], {'help': 'Sort results by property'}),
+            (['--projection'], {'default': 'BASIC',
+             'choices': ['BASIC', 'FULL'],
+             'help': 'retrieve basic or full browser details'}),
+            (['--query'], {'help': 'Query to scope results'}),
+            (['--sortorder'], {'default': 'ASCENDING',
+             'choices': ['ASCENDING', 'DESCENDING'], 'help': 'Sort order'}),
+            (['--fields'],
+             {'help': 'Limit fields retrieved and output.'}),
+         ],
+         'update-browser': [
+             (['--id'], {'required': True,
+              'help': 'deviceId of the browser to update'}),
+             (['--user'], {'help': 'user of the browser'}),
+             (['--location'], {'help': 'location of the browser'}),
+             (['--notes'], {'help': 'notes of the browser'}),
+             (['--assetid'], {'help': 'asset tag id of the browser'}),
+             (['--fields'],
+              {'help': 'Limit fields retrieved and output.'}),
+         ],
+         'delete-browser': [
+             (['--id'], {'required': True,
+              'help': 'deviceId of the browser to delete'}),
+         ],
+         'move-browsers': [
+             (['--ids'],
+              {'help': 'comma-seperated deviceIds of the browsers to move'}),
+             (['--orgunit'], {'required': True,
+              'help': 'Org Unit location to move browsers'}),
+             (['--query'], {'help': 'Query to scope devices to be moved.'}),
+             (['--file-of-ids'],
+              {'dest': 'file_of_ids',
+               'help': 'File containing deviceIds of the browser to move, ' \
+                'one per line'})
+         ],
+         'list-tokens': [
+             (['--orgunit'], {'help': 'OrgUnit to scope results'}),
+             (['--query'], {'help': 'Query to scope results'}),
+             (['--fields'], {'help': 'Limit fields retrieved and output'}),
+         ],
+         'create-token': [
+             (['--expire'], {'help': 'Optional expiration time of the ' \
+               'enrollment token in "yyyy-MM-ddThh:mm:ssZ" format.'}),
+             (['--orgunit'], {'help': 'The organization unit to create an ' \
+               'enrollment token for. If this' \
                                        'field is not specified, the ' \
                                        'enrollment token is created for the ' \
-                                       'root organization unit.')
-    createtoken_p.add_argument('--ttl', help='Life of the created enrollment ' \
-            'token, encoded in seconds with an “s” suffix. Eg, for a token ' \
-            'to live for 1 hour, this field should be set to “3600s”.')
-    createtoken_p.set_defaults(func=createtoken)
-    createtoken_p.add_argument('--fields', help='Limit fields retrieved and output.')
+                                       'root organization unit.'}),
+             (['--ttl'], {'help': 'Life of the created enrollment token'}),
+             (['--fields'], {'help': 'Limit fields retrieved and output'}),
+         ],
+         'revoke-token': [
+             (['--id'], {'required': True,
+              'help': 'permanent ID of the token to revoke'}),
+         ],
+    }
 
-    revoketoken_p = subparsers.add_parser('revoke-token', help='Revoke enrollment token')
-    revoketoken_p.add_argument('--id', required=True,
-                               help='permanent ID of the token to revoke')
-    revoketoken_p.set_defaults(func=revoketoken)
+    for argument, flags in arguments.items():
+        argument_p = subparsers.add_parser(argument)
+        for args1, args2 in flags:
+            argument_p.add_argument(*args1, **args2)
+        myfunc = globals()[argument.replace('-', '')]
+        argument_p.set_defaults(func=myfunc)
 
     return parser.parse_args(args)
 
@@ -168,11 +166,40 @@ def deletebrowser(args, httpc):
 
 def movebrowsers(args, httpc):
     """Move browsers."""
+    if sum(map(bool, [args.ids, args.query, args.file_of_ids])) != 1:
+        print('Please specify exactly one of --ids, --query or --file-of-ids')
+        sys.exit(1)
     body = {}
-    body['resource_ids'] = args.ids.split(',')
     body['org_unit_path'] = args.orgunit
-    result = httpc.post('devices/chromebrowsers/moveChromeBrowsersToOu', json=body)
-    print(f'{result.status_code} {result.reason}')
+    if args.ids:
+        ids = args.ids.split(',')
+    elif args.query:
+        ids = []
+        params = {
+            'fields': 'browsers(deviceId),nextPageToken',
+            'query': args.query
+        }
+        while True:
+            result = httpc.get('devices/chromebrowsers', params=params)
+            browsers = result.json().get('browsers', [])
+            ids.extend([browser['deviceId'] for browser in browsers])
+            if 'nextPageToken' in result:
+                params['pageToken'] = result['nextPageToken']
+            else:
+                break
+    else:
+        if not os.path.isfile(args.file_of_ids):
+            print(f'ERROR: {args.file_of_ids} does not exist')
+            sys.exit(2)
+        with open(args.file_of_ids, 'r') as fpointer:
+            lines = fpointer.readlines()
+        ids = [line.strip() for line in lines]
+    id_chunks = list(chunks(ids, 600))
+    for id_chunk in id_chunks:
+        print(f' moving {len(id_chunk)} browsers...')
+        body['resource_ids'] = id_chunk
+        result = httpc.post('devices/chromebrowsers/moveChromeBrowsersToOu', json=body)
+        print(f'{result.status_code} {result.reason}')
 
 
 def listtokens(args, httpc):
@@ -214,6 +241,12 @@ def revoketoken(args, httpc):
     """Revoke token."""
     result = httpc.post(f'chrome/enrollmentTokens/{args.id}:revoke')
     print(f'{result.status_code} {result.reason}')
+
+
+def chunks(full_list, list_length):
+    """breaks full_list into a list of lists of length list_length"""
+    for i in range(0, len(full_list), list_length):
+        yield full_list[i:i+list_length]
 
 
 def print_json(myjson):
