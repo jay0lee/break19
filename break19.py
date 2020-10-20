@@ -15,7 +15,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry # pylint: disable=E0401
 from requests_toolbelt import sessions
 
-__version__ = '0.2'
+__version__ = '0.3'
 __author__ = 'Jay Lee'
 
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.device.chromebrowsers']
