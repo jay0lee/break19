@@ -31,7 +31,7 @@
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ROOTDRIVE">
-          <Directory Id="INSTALLFOLDER" Name="GAM" />
+          <Directory Id="INSTALLFOLDER" Name="break19" />
         </Directory>
     </Directory>
   </Fragment>
